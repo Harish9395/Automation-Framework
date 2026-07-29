@@ -27,8 +27,10 @@ jobs:
         python-version: "3.11"
         
     - name: Install Dependencies
-      run:
+      run: |
+        cd automation-framework
         pip install -r requirements.txt
+        
     - name: Execute Tests
       env:
         SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
