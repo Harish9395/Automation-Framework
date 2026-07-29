@@ -1,0 +1,34 @@
+name: ECS API Tests
+
+on:
+  push:
+    branches:
+      - main
+
+  workflow_dispatch:
+
+
+permissions:
+  contents: read
+
+
+jobs:
+
+  api-test:
+    name: API Smoke Tests
+    uses: ./.github/workflows/api-tests.yml
+    secrets: inherit
+
+
+  automation-test:
+    name: UI Smoke Automation
+    needs: api-test
+    uses: ./.github/workflows/automation.yml
+    secrets: inherit
+
+
+  regression-test:
+    name: Regression Tests
+    needs: automation-test
+    uses: ./.github/workflows/regression.yml
+    secrets: inherit
