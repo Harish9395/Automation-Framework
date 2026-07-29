@@ -1,0 +1,113 @@
+name: ECS Sauce Labs Performance Tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+
+env:
+  BUILD_NAME: ECS-Performance-${{ github.run_number }}
+  BUILD_ID: ${{ github.run_id }}
+  PYTHONUNBUFFERED: "1"
+
+jobs:
+  performance-test:
+    name: Performance Test - ${{ matrix.browser }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        browser:
+          - chrome
+          - firefox
+          - edge
+
+    defaults:
+      run:
+        working-directory: automation-framework
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: automation-framework/requirements.txt
+
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+
+      - name: Create Reports Directory
+        run: |
+          mkdir -p reports
+
+      - name: Validate Sauce Credentials
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+
+        run: |
+          test -n "$SAUCE_USERNAME" || exit 1
+          test -n "$SAUCE_ACCESS_KEY" || exit 1
+          echo "Sauce credentials validated"
+
+      - name: Run Performance Test on Sauce Labs
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+          APP_URL: ${{ secrets.APP_URL }}
+
+          BROWSER: ${{ matrix.browser }}
+          BROWSER_VERSION: latest
+
+          TEST_NAME: ECS Performance Test - ${{ matrix.browser }}
+          TEST_TYPE: Performance
+
+          BUILD_NAME: ${{ env.BUILD_NAME }}
+          BUILD_ID: ${{ env.BUILD_ID }}
+          GIT_BRANCH: ${{ github.ref_name }}
+          GIT_COMMIT: ${{ github.sha }}
+          
+        run: |
+          pytest \
+            tests/performance \
+            -m performance \
+            -v \
+            --tb=short \
+            --junitxml=reports/performance-${{ matrix.browser }}.xml
+
+      - name: Upload Performance Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-report-${{ matrix.browser }}
+          path: automation-framework/reports/
+          if-no-files-found: warn
+
+      - name: Publish Summary
+        if: always()
+        run: |
+          {
+            echo "## Sauce Labs Performance Test Summary"
+            echo ""
+            echo "| Browser | Status |"
+            echo "|---------|--------|"
+            echo "| ${{ matrix.browser }} | ${{ job.status }} |"
+            echo ""
+            echo "Build: $BUILD_NAME"
+          } >> "$GITHUB_STEP_SUMMARY"
