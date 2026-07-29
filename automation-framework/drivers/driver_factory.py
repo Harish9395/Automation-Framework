@@ -7,6 +7,7 @@ from selenium.webdriver.edge.options import Options as EdgeOptions
 
 
 def get_driver():
+
     username = os.getenv("SAUCE_USERNAME")
     access_key = os.getenv("SAUCE_ACCESS_KEY")
 
@@ -38,12 +39,17 @@ def get_driver():
         "build": os.getenv("BUILD_NAME", "GitHub Actions"),
         "buildId": os.getenv("BUILD_ID", ""),
         "tags": [
+            os.getenv("TEST_TYPE", ""),
+            browser,
             os.getenv("GIT_BRANCH", ""),
             "GitHub Actions"
         ]
     }
 
-    options.set_capability("sauce:options", sauce_options)
+    options.set_capability(
+        "sauce:options",
+        sauce_options
+    )
 
     driver = webdriver.Remote(
         command_executor=sauce_url,
