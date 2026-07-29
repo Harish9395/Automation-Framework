@@ -8,8 +8,6 @@ def mobile_driver():
 
     driver = get_mobile_driver()
 
-
     yield driver
-
 
     driver.quit()
