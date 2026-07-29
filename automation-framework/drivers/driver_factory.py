@@ -18,69 +18,63 @@ def get_driver():
         raise Exception("SAUCE_ACCESS_KEY is missing")
 
 
-    browser = os.getenv("BROWSER", "chrome").lower()
+    # Dynamic configuration from GitHub Actions
+    browser = os.getenv(
+        "BROWSER",
+        "chrome"
+    ).lower()
 
-    sauce_url = "https://ondemand.eu-central-1.saucelabs.com/wd/hub"
+    browser_version = os.getenv(
+        "BROWSER_VERSION",
+        "latest"
+    )
+
+    platform = os.getenv(
+        "PLATFORM",
+        "Windows 11"
+    )
 
 
+    sauce_url = (
+        "https://ondemand.eu-central-1.saucelabs.com/wd/hub"
+    )
+
+
+    # Browser options
     if browser == "firefox":
 
         options = FirefoxOptions()
-
-        options.set_capability(
-            "browserName",
-            "firefox"
-        )
-
-        options.set_capability(
-            "browserVersion",
-            "latest"
-        )
-
-        options.set_capability(
-            "platformName",
-            "Windows 11"
-        )
-
 
     elif browser == "edge":
 
         options = EdgeOptions()
 
-        options.set_capability(
-            "browserName",
-            "MicrosoftEdge"
-        )
-
-        options.set_capability(
-            "browserVersion",
-            "latest"
-        )
-
-        options.set_capability(
-            "platformName",
-            "Windows 11"
-        )
-
+        # Sauce Labs expects MicrosoftEdge
+        browser = "MicrosoftEdge"
 
     else:
 
         options = Options()
+        browser = "chrome"
 
-        options.set_capability(
-            "browserName",
-            "chrome"
-        )
 
-        options.set_capability(
-            "browserVersion",
-            "latest"
-        )
 
-        options.set_capability(
-            "platformName",
-            "Windows 11"
-        )
+    # Common Sauce capabilities
+
+    options.set_capability(
+        "browserName",
+        browser
+    )
+
+    options.set_capability(
+        "browserVersion",
+        browser_version
+    )
+
+    options.set_capability(
+        "platformName",
+        platform
+    )
 
 
     sauce_options = {
@@ -89,9 +83,11 @@ def get_driver():
 
         "accessKey": access_key,
 
+
+        # Test information
         "name": os.getenv(
             "TEST_NAME",
-            "ECS Automation"
+            "ECS Automation Test"
         ),
 
         "build": os.getenv(
@@ -104,17 +100,29 @@ def get_driver():
             ""
         ),
 
-        # Debugging features
+
+        # Sauce debugging
         "recordVideo": True,
 
         "capturePerformance": True,
 
         "extendedDebugging": True,
 
+
+        # Tags visible in Sauce Dashboard
         "tags": [
-            os.getenv("TEST_TYPE", ""),
+            os.getenv(
+                "TEST_TYPE",
+                "automation"
+            ),
+
             browser,
-            os.getenv("GIT_BRANCH", ""),
+
+            os.getenv(
+                "GIT_BRANCH",
+                ""
+            ),
+
             "GitHub Actions"
         ]
     }
@@ -133,5 +141,6 @@ def get_driver():
 
 
     driver.maximize_window()
+
 
     return driver
