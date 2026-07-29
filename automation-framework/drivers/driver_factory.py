@@ -1,11 +1,56 @@
+import os
+
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
 
 def get_driver():
 
-    options = webdriver.ChromeOptions()
+    username = os.environ["SAUCE_USERNAME"]
 
-    driver = webdriver.Chrome(options=options)
+    access_key = os.environ["SAUCE_ACCESS_KEY"]
 
-    driver.maximize_window()
+
+    sauce_url = (
+        f"https://{username}:{access_key}"
+        "@ondemand.us-west-1.saucelabs.com:443/wd/hub"
+    )
+
+
+    options = Options()
+
+
+    options.set_capability(
+        "browserName",
+        "chrome"
+    )
+
+
+    options.set_capability(
+        "platformName",
+        "Windows 11"
+    )
+
+
+    options.set_capability(
+        "browserVersion",
+        "latest"
+    )
+
+
+    options.set_capability(
+        "sauce:options",
+        {
+            "build": "Flask-ECS-Automation",
+            "name": "Smoke Test"
+        }
+    )
+
+
+    driver = webdriver.Remote(
+        command_executor=sauce_url,
+        options=options
+    )
+
 
     return driver
