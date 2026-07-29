@@ -1,51 +1,94 @@
 name: ECS Sauce Labs Regression Tests
+
 on:
   workflow_call:
-  
+
   workflow_dispatch:
+
   # schedule:
   #   - cron: "0 2 * * *"
 
 permissions:
   contents: read
 
+env:
+  BUILD_NAME: ECS-Regression-${{ github.run_number }}
+  BUILD_ID: ${{ github.run_id }}
+  GIT_BRANCH: ${{ github.ref_name }}
+  GIT_COMMIT: ${{ github.sha }}
+
 jobs:
   regression-test:
     runs-on: ubuntu-latest
+
     strategy:
       fail-fast: false
       matrix:
         browser:
           - chrome
-         # - firefox
+       #   - firefox
+       #   - edge
+
     defaults:
       run:
         working-directory: automation-framework
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
-    - name: Install Dependencies
-      run:
-        pip install -r requirements.txt
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    - name: Run Regression Tests
-      env:
-        SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
-        SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
-        APP_URL: ${{ secrets.APP_URL }}
-        BROWSER: ${{ matrix.browser }}
-      run:
-        pytest -m regression -v
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Upload Reports
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: regression-report-${{ matrix.browser }}
-        path: automation-framework/reports/
+      - name: Create Reports Directory
+        run: mkdir -p reports
+
+      - name: Run Regression Tests
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+          APP_URL: ${{ secrets.APP_URL }}
+
+          BROWSER: ${{ matrix.browser }}
+
+          BUILD_NAME: ${{ env.BUILD_NAME }}
+          BUILD_ID: ${{ env.BUILD_ID }}
+          GIT_BRANCH: ${{ env.GIT_BRANCH }}
+          GIT_COMMIT: ${{ env.GIT_COMMIT }}
+
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+        run: |
+          pytest -m regression \
+            -v \
+            --tb=short \
+            --junitxml=reports/results-${{ matrix.browser }}.xml
+
+      - name: Upload JUnit Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-results-${{ matrix.browser }}
+          path: automation-framework/reports/results-${{ matrix.browser }}.xml
+
+      - name: Upload HTML Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-report-${{ matrix.browser }}
+          path: automation-framework/reports/
+
+      - name: Job Summary
+        if: always()
+        run: |
+          echo "## Sauce Labs Regression Run" >> $GITHUB_STEP_SUMMARY
+          echo "- Browser: ${{ matrix.browser }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Build: $BUILD_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: $GIT_BRANCH" >> $GITHUB_STEP_SUMMARY
+          echo "- Run Number: ${{ github.run_number }}" >> $GITHUB_STEP_SUMMARY
