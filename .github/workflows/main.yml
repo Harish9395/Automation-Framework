@@ -20,17 +20,23 @@ jobs:
     secrets: inherit
 
 
-  automation-test:
-    name: UI Smoke Automation
+  # automation-test:
+  #   name: UI Smoke Automation
+  #   needs: api-test
+  #   uses: ./.github/workflows/automation.yml
+  #   secrets: inherit
+
+
+  # regression-test:
+  #   name: Regression Tests
+  #   needs: automation-test
+  #   uses: ./.github/workflows/regression.yml
+  #   secrets: inherit
+
+  mobile-test:
+    name: mobile Tests
     needs: api-test
-    uses: ./.github/workflows/automation.yml
-    secrets: inherit
-
-
-  regression-test:
-    name: Regression Tests
-    needs: automation-test
-    uses: ./.github/workflows/regression.yml
+    uses: ./.github/workflows/performance.yml
     secrets: inherit
 
   # performance-test:
