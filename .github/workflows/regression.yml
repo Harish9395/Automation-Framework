@@ -1,0 +1,46 @@
+name: ECS Sauce Labs Regression Tests
+on:
+  workflow_dispatch:
+  # schedule:
+  #   - cron: "0 2 * * *"
+
+jobs:
+  regression-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - chrome
+         # - firefox
+    defaults:
+      run:
+        working-directory: automation-framework
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+
+    - name: Install Dependencies
+      run:
+        pip install -r requirements.txt
+
+    - name: Run Regression Tests
+      env:
+        SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+        SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+        APP_URL: ${{ secrets.APP_URL }}
+        BROWSER: ${{ matrix.browser }}
+      run:
+        pytest -m regression -v
+
+    - name: Upload Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: regression-report-${{ matrix.browser }}
+        path: automation-framework/reports/
