@@ -8,66 +8,142 @@ on:
   workflow_dispatch:
 
 
+permissions:
+  contents: read
+
+
 jobs:
 
   automation-test:
 
+    name: Test ${{ matrix.browser }}
+
     runs-on: ubuntu-latest
 
+    timeout-minutes: 30
+
+
     strategy:
+
+      fail-fast: false
+
       matrix:
+
         browser:
           - chrome
-          - firefox
-          - edge
-
-
-    name: Test ${{ matrix.browser }}
+          # Enable after Chrome works
+          # - firefox
+          # - edge
 
 
     defaults:
+
       run:
+
         working-directory: automation-framework
+
 
 
     steps:
 
+
     - name: Checkout Code
+
       uses: actions/checkout@v4
 
 
+
     - name: Setup Python
+
       uses: actions/setup-python@v5
+
       with:
+
         python-version: "3.11"
 
 
+
     - name: Install Dependencies
+
       run: |
+
+        pip install --upgrade pip
+
         pip install -r requirements.txt
 
 
+
     - name: Verify Project Structure
+
       run: |
+
         pwd
+
         ls -la
+
         find . -maxdepth 3 -type f
 
 
-    - name: Execute Tests
+
+    - name: Verify Sauce Credentials
+
       env:
+
         SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+
         SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
-        APP_URL: ${{ secrets.APP_URL }}
-        BROWSER: ${{ matrix.browser }}
 
       run: |
+
+        if [ -z "$SAUCE_USERNAME" ]; then
+
+          echo "SAUCE_USERNAME is missing"
+
+          exit 1
+
+        fi
+
+
+        if [ -z "$SAUCE_ACCESS_KEY" ]; then
+
+          echo "SAUCE_ACCESS_KEY is missing"
+
+          exit 1
+
+        fi
+
+
+        echo "Sauce credentials are available"
+
+
+
+    - name: Execute Sauce Labs Tests
+
+      env:
+
+        SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+
+        SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+
+        APP_URL: ${{ secrets.APP_URL }}
+
+        BROWSER: ${{ matrix.browser }}
+
+
+      run: |
+
         pytest -v
 
 
-    - name: Upload Reports
+
+    - name: Upload Automation Reports
+
       if: always()
+
       uses: actions/upload-artifact@v4
+
       with:
-        name: report-${{ matrix.browser }}
+
+        name: sauce-report-${{ matrix.browser }}
+
         path: automation-framework/reports/
