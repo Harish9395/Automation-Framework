@@ -7,19 +7,24 @@ from drivers.driver_factory import get_driver
 @pytest.fixture
 def driver(request):
 
-    # Use pytest test name in Sauce Labs dashboard
     os.environ["TEST_NAME"] = request.node.name
 
     driver = get_driver()
 
     yield driver
 
-    # Update Sauce Labs job status
     if hasattr(request.node, "rep_call"):
-        if request.node.rep_call.passed:
-            driver.execute_script("sauce:job-result=passed")
+        if request.node.rep_call.failed:
+            driver.save_screenshot(
+                f"reports/{request.node.name}.png"
+            )
+            driver.execute_script(
+                "sauce:job-result=failed"
+            )
         else:
-            driver.execute_script("sauce:job-result=failed")
+            driver.execute_script(
+                "sauce:job-result=passed"
+            )
 
     driver.quit()
 
