@@ -104,6 +104,13 @@ def get_driver():
             ""
         ),
 
+        # Debugging features
+        "recordVideo": True,
+
+        "capturePerformance": True,
+
+        "extendedDebugging": True,
+
         "tags": [
             os.getenv("TEST_TYPE", ""),
             browser,
