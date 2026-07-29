@@ -16,7 +16,7 @@ def get_driver():
         raise Exception("SAUCE_ACCESS_KEY is missing")
 
 
-    sauce_url = "https://ondemand.us-west-1.saucelabs.com/wd/hub"
+    sauce_url = "https://ondemand.eu-central-1.saucelabs.com/wd/hub"
 
 
     options = Options()
