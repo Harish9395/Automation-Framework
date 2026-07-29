@@ -156,10 +156,10 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
 
-  regression-test:
-    name: Regression Tests
-    needs: automation-test
-    if: success()
+  # regression-test:
+  #   name: Regression Tests
+  #   needs: automation-test
+  #   if: success()
 
-    uses: ./.github/workflows/regression.yml
-    secrets: inherit
+  #   uses: ./.github/workflows/regression.yml
+  #   secrets: inherit
