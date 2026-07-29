@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  BUILD_NAME: ECS-Automation-${{ github.run_number }}
+  BUILD_NAME: ECS-Smoke-${{ github.run_number }}
   BUILD_ID: ${{ github.run_id }}
   GIT_BRANCH: ${{ github.ref_name }}
   GIT_COMMIT: ${{ github.sha }}
@@ -56,12 +56,8 @@ jobs:
 
       - name: Verify Project Structure
         run: |
-          echo "Current directory:"
           pwd
-          echo ""
-          echo "Project files:"
           ls -la
-          echo ""
           find . -maxdepth 3 -type f
 
       - name: Validate Sauce Labs Credentials
@@ -69,18 +65,16 @@ jobs:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
         run: |
-          test -n "$SAUCE_USERNAME" || { echo "SAUCE_USERNAME secret is missing."; exit 1; }
-          test -n "$SAUCE_ACCESS_KEY" || { echo "SAUCE_ACCESS_KEY secret is missing."; exit 1; }
-
-          echo "Sauce Labs credentials validated successfully."
+          test -n "$SAUCE_USERNAME" || exit 1
+          test -n "$SAUCE_ACCESS_KEY" || exit 1
+          echo "Sauce Labs credentials validated"
 
       - name: Verify Application Connectivity
         env:
           APP_URL: ${{ secrets.APP_URL }}
         run: |
-          test -n "$APP_URL" || { echo "APP_URL secret is missing."; exit 1; }
+          test -n "$APP_URL" || exit 1
 
-          echo "Checking application availability..."
           curl \
             --retry 3 \
             --retry-delay 5 \
@@ -91,7 +85,7 @@ jobs:
             --location \
             "$APP_URL"
 
-          echo "Application is reachable."
+          echo "Application reachable"
 
       - name: Create Reports Directory
         run: mkdir -p reports
@@ -101,6 +95,7 @@ jobs:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
           APP_URL: ${{ secrets.APP_URL }}
+
           BROWSER: ${{ matrix.browser }}
 
           BUILD_NAME: ${{ env.BUILD_NAME }}
@@ -108,17 +103,20 @@ jobs:
           GIT_BRANCH: ${{ env.GIT_BRANCH }}
           GIT_COMMIT: ${{ env.GIT_COMMIT }}
 
+          TEST_NAME: Flask ECS Smoke Test
+
         run: |
           pytest \
             -m smoke \
             -v \
+            --tb=short \
             --junitxml=reports/smoke-${{ matrix.browser }}.xml
 
       - name: Upload JUnit Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: junit-${{ matrix.browser }}
+          name: junit-smoke-${{ matrix.browser }}
           path: automation-framework/reports/*.xml
           if-no-files-found: warn
 
@@ -126,7 +124,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sauce-report-${{ matrix.browser }}
+          name: sauce-smoke-report-${{ matrix.browser }}
           path: automation-framework/reports/
           if-no-files-found: warn
 
@@ -138,17 +136,19 @@ jobs:
             echo ""
             echo "| Property | Value |"
             echo "|----------|-------|"
+            echo "| Test Type | Smoke |"
             echo "| Build | $BUILD_NAME |"
             echo "| Browser | ${{ matrix.browser }} |"
             echo "| Branch | $GIT_BRANCH |"
             echo "| Commit | $GIT_COMMIT |"
-            echo "| Run ID | $BUILD_ID |"
             echo "| Status | ${{ job.status }} |"
           } >> "$GITHUB_STEP_SUMMARY"
+
 
   regression-test:
     name: Regression Tests
     needs: automation-test
     if: success()
+
     uses: ./.github/workflows/regression.yml
     secrets: inherit
