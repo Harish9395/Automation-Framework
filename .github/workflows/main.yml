@@ -36,7 +36,7 @@ jobs:
   mobile-test:
     name: mobile Tests
     needs: api-test
-    uses: ./.github/workflows/performance.yml
+    uses: ./.github/workflows/mobile.yml
     secrets: inherit
 
   # performance-test:
