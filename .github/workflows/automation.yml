@@ -1,0 +1,46 @@
+name: ECS Sauce Labs Automation
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  automation-test:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser:
+          - chrome
+          - firefox
+          - edge
+
+    name: Test ${{ matrix.browser }}
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      
+    - name: Setup Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.11"
+        
+    - name: Install Dependencies
+      run:
+        pip install -r requirements.txt
+    - name: Execute Tests
+      env:
+        SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+        SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+        APP_URL: ${{ secrets.APP_URL }}
+        BROWSER: ${{ matrix.browser }}
+      run:
+        pytest
+        
+    - name: Upload Reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: report-${{ matrix.browser }}
+        path: reports/
