@@ -31,8 +31,8 @@ jobs:
       matrix:
         browser:
           - chrome
-          # - firefox
-          # - edge
+          - firefox
+          - edge
 
     defaults:
       run:
