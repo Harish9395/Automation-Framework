@@ -106,6 +106,14 @@ jobs:
           path: automation-framework/reports/
           if-no-files-found: warn
 
+      - name: Upload Failure Screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regression-failure-screenshots-${{ matrix.browser }}
+          path: automation-framework/reports/*.png
+          if-no-files-found: warn
+
       - name: Publish Regression Summary
         if: always()
         run: |
