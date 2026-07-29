@@ -82,7 +82,7 @@ jobs:
         env:
           SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
           SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
-          SAUCE_APP: ${{ secrets.SAUCE_APP }}
+          APP_URL: ${{ secrets.APP_URL }}
 
           BUILD_NAME: ${{ env.BUILD_NAME }}
           BUILD_ID: ${{ env.BUILD_ID }}
