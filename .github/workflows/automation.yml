@@ -85,3 +85,9 @@ jobs:
       with:
         name: sauce-report-${{ matrix.browser }}
         path: automation-framework/reports/
+
+  regression-test:
+    needs: automation-test
+    if: success()
+    uses: ./.github/workflows/regression.yml
+    secrets: inherit
