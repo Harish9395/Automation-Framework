@@ -1,4 +1,4 @@
-name: ECS API Tests
+name: ECS Saucelabs main
 
 on:
   push:
