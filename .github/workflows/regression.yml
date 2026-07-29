@@ -1,8 +1,13 @@
 name: ECS Sauce Labs Regression Tests
 on:
+  workflow_call:
+  
   workflow_dispatch:
   # schedule:
   #   - cron: "0 2 * * *"
+
+permissions:
+  contents: read
 
 jobs:
   regression-test:
