@@ -1,0 +1,129 @@
+name: ECS Sauce Labs Mobile Tests
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  BUILD_NAME: ECS-Mobile-${{ github.run_number }}
+  BUILD_ID: ${{ github.run_id }}
+  GIT_BRANCH: ${{ github.ref_name }}
+  GIT_COMMIT: ${{ github.sha }}
+  PYTHONUNBUFFERED: "1"
+
+
+jobs:
+  mobile-test:
+
+    name: Mobile Test - Sauce Labs
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+
+    defaults:
+      run:
+        working-directory: automation-framework
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: automation-framework/requirements.txt
+
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+
+      - name: Create Reports Directory
+        run: |
+          mkdir -p reports
+
+
+      - name: Validate Sauce Labs Credentials
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+          SAUCE_APP: ${{ secrets.SAUCE_APP }}
+
+        run: |
+
+          test -n "$SAUCE_USERNAME" || {
+            echo "SAUCE_USERNAME missing"
+            exit 1
+          }
+
+
+          test -n "$SAUCE_ACCESS_KEY" || {
+            echo "SAUCE_ACCESS_KEY missing"
+            exit 1
+          }
+
+          test -n "$SAUCE_APP" || {
+            echo "SAUCE_APP missing"
+            exit 1
+          }
+
+          echo "Sauce Labs mobile configuration validated"
+
+
+      - name: Run Mobile Smoke Tests
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+          SAUCE_APP: ${{ secrets.SAUCE_APP }}
+
+          BUILD_NAME: ${{ env.BUILD_NAME }}
+          BUILD_ID: ${{ env.BUILD_ID }}
+          TEST_NAME: ECS Mobile Smoke Test
+          TEST_TYPE: Mobile Smoke
+
+        run: |
+
+          pytest \
+            mobile/tests \
+            -m "mobile and smoke" \
+            -v \
+            --tb=short \
+            --junitxml=reports/mobile-results.xml \
+            --html=reports/mobile-report.html \
+            --self-contained-html
+
+
+
+      - name: Upload Mobile Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sauce-mobile-report
+          path: automation-framework/reports/
+          if-no-files-found: warn
+
+
+
+      - name: Publish Mobile Summary
+        if: always()
+
+        run: |
+          {
+            echo "## Sauce Labs Mobile Test Summary"
+            echo ""
+            echo "| Property | Value |"
+            echo "|----------|-------|"
+            echo "| Test Type | Mobile Smoke |"
+            echo "| Build | $BUILD_NAME |"
+            echo "| Branch | $GIT_BRANCH |"
+            echo "| Commit | $GIT_COMMIT |"
+            echo "| Status | ${{ job.status }} |"
+          } >> "$GITHUB_STEP_SUMMARY"
