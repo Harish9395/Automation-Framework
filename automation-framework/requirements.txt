@@ -1,6 +1,20 @@
+# Browser Automation
 selenium==4.23.1
+
+# Test Framework
 pytest==8.3.2
+
+# HTML Test Reports
 pytest-html==4.1.1
+
+# Parallel Test Execution
 pytest-xdist==3.6.1
+
+# YAML Configuration Support
 PyYAML==6.0.2
+
+# Environment Variable Management
 python-dotenv==1.0.1
+
+# Optional: Better test retry handling
+pytest-rerunfailures==14.0
