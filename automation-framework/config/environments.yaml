@@ -1,0 +1,11 @@
+dev:
+  url: https://dev.company.com
+
+qa:
+  url: https://qa.company.com
+
+stage:
+  url: https://stage.company.com
+
+prod:
+  url: https://your-ecs-url.amazonaws.com
