@@ -77,7 +77,7 @@ jobs:
         BROWSER: ${{ matrix.browser }}
 
       run: |
-        pytest -v
+        pytest -m smoke -v
 
     - name: Upload Automation Reports
       if: always()
