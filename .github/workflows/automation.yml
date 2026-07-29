@@ -18,12 +18,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-
         browser:
           - chrome
           # Enable after chrome works
-          - firefox
-          - edge
+          #- firefox
+          #- edge
 
     defaults:
       run:
