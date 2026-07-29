@@ -80,7 +80,7 @@ jobs:
           GIT_COMMIT: ${{ env.GIT_COMMIT }}
 
           TEST_NAME: Flask ECS Regression Test
-
+          TEST_TYPE: Regression
           GITHUB_RUN_NUMBER: ${{ github.run_number }}
 
         run: |
