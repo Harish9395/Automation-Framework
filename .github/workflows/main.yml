@@ -32,3 +32,9 @@ jobs:
     needs: automation-test
     uses: ./.github/workflows/regression.yml
     secrets: inherit
+
+  # performance-test:
+  #   name: Browser Performance Tests
+  #   needs: regression-test
+  #   uses: ./.github/workflows/performance.yml
+  #   secrets: inherit
