@@ -23,9 +23,11 @@ def get_driver():
     sauce_url = "https://ondemand.eu-central-1.saucelabs.com/wd/hub"
 
 
+    # Browser options
     if browser == "firefox":
 
         options = FirefoxOptions()
+
         browser_version = "latest"
         platform = "Windows 11"
 
@@ -33,17 +35,21 @@ def get_driver():
     elif browser == "edge":
 
         options = EdgeOptions()
-        browser_version = "stable"
-        platform = "Windows 10"
+
+        # Sauce Labs supported Edge configuration
+        browser_version = "latest"
+        platform = "Windows 11"
 
 
     else:
 
         options = Options()
+
         browser_version = "latest"
         platform = "Windows 11"
 
 
+    # Sauce capabilities
     options.set_capability(
         "browserName",
         browser
