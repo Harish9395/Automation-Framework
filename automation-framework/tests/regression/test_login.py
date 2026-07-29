@@ -8,6 +8,8 @@ def test_login(driver):
 
     url = load_environment()
 
+    print("Opening application:", url)
+
     driver.get(url)
 
     assert "App Works" in driver.page_source
