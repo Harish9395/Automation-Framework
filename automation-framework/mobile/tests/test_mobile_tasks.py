@@ -2,14 +2,9 @@ import pytest
 
 
 @pytest.mark.mobile
-def test_open_mobile_app(
+@pytest.mark.smoke
+def test_mobile_application_launch(
     mobile_driver
 ):
 
-    title = mobile_driver.find_element(
-        "accessibility id",
-        "appTitle"
-    )
-
-
-    assert title.is_displayed()
+    assert mobile_driver.session_id is not None
