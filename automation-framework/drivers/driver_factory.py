@@ -2,9 +2,17 @@ import os
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.firefox.options import Options as FirefoxOptions
+from selenium.webdriver.edge.options import Options as EdgeOptions
 
 
 def get_driver():
+
+    browser = os.environ.get(
+        "BROWSER",
+        "chrome"
+    )
+
 
     username = os.environ["SAUCE_USERNAME"]
 
@@ -17,13 +25,26 @@ def get_driver():
     )
 
 
-    options = Options()
+    if browser == "chrome":
+
+        options = Options()
 
 
-    options.set_capability(
-        "browserName",
-        "chrome"
-    )
+    elif browser == "firefox":
+
+        options = FirefoxOptions()
+
+
+    elif browser == "edge":
+
+        options = EdgeOptions()
+
+
+    else:
+
+        raise Exception(
+            f"Unsupported browser: {browser}"
+        )
 
 
     options.set_capability(
@@ -41,8 +62,8 @@ def get_driver():
     options.set_capability(
         "sauce:options",
         {
-            "build": "Flask-ECS-Automation",
-            "name": "Smoke Test"
+            "build": "Flask-ECS-Build",
+            "name": f"{browser} smoke test"
         }
     )
 
@@ -51,6 +72,9 @@ def get_driver():
         command_executor=sauce_url,
         options=options
     )
+
+
+    driver.maximize_window()
 
 
     return driver
