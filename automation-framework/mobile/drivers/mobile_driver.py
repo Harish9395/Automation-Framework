@@ -8,7 +8,6 @@ def get_mobile_driver():
 
     username = os.getenv("SAUCE_USERNAME")
     access_key = os.getenv("SAUCE_ACCESS_KEY")
-    app = os.getenv("SAUCE_APP")
 
     if not username:
         raise Exception("SAUCE_USERNAME is missing")
@@ -16,12 +15,7 @@ def get_mobile_driver():
     if not access_key:
         raise Exception("SAUCE_ACCESS_KEY is missing")
 
-    if not app:
-        raise Exception("SAUCE_APP is missing")
-
-
     options = UiAutomator2Options()
-
 
     options.set_capability(
         "platformName",
@@ -39,10 +33,9 @@ def get_mobile_driver():
     )
 
     options.set_capability(
-        "appium:app",
-        app
+        "browserName",
+        "Chrome"
     )
-
 
     options.set_capability(
         "sauce:options",
@@ -52,7 +45,7 @@ def get_mobile_driver():
 
             "name": os.getenv(
                 "TEST_NAME",
-                "ECS Mobile Test"
+                "ECS Mobile Web Test"
             ),
 
             "build": os.getenv(
@@ -71,6 +64,7 @@ def get_mobile_driver():
 
             "tags": [
                 "mobile",
+                "web",
                 os.getenv(
                     "TEST_TYPE",
                     "Smoke"
@@ -79,14 +73,9 @@ def get_mobile_driver():
         }
     )
 
-
     driver = webdriver.Remote(
-
-        command_executor=
-        "https://ondemand.eu-central-1.saucelabs.com/wd/hub",
-
+        command_executor="https://ondemand.eu-central-1.saucelabs.com/wd/hub",
         options=options
     )
-
 
     return driver
