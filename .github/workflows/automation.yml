@@ -1,4 +1,5 @@
 name: ECS Sauce Labs Automation
+
 on:
   push:
     branches:
@@ -8,6 +9,12 @@ on:
 
 permissions:
   contents: read
+
+env:
+  BUILD_NAME: ECS-Automation-${{ github.run_number }}
+  BUILD_ID: ${{ github.run_id }}
+  GIT_BRANCH: ${{ github.ref_name }}
+  GIT_COMMIT: ${{ github.sha }}
 
 jobs:
   automation-test:
@@ -20,71 +27,92 @@ jobs:
       matrix:
         browser:
           - chrome
-          # Enable after chrome works
-          #- firefox
-          #- edge
+          # - firefox
+          # - edge
 
     defaults:
       run:
         working-directory: automation-framework
+
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
-    - name: Install Dependencies
-      run: |
-        pip install --upgrade pip
-        pip install -r requirements.txt
-        
-    - name: Verify Project Structure
-      run: |
-        pwd
-        ls -la
-        find . -maxdepth 3 -type f
-        
-    - name: Verify Sauce Credentials
-      env:
-        SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
-        SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
-      run: |
-        if [ -z "$SAUCE_USERNAME" ]; then
-          echo "SAUCE_USERNAME is missing"
-          exit 1
-        fi
-        
-        if [ -z "$SAUCE_ACCESS_KEY" ]; then
-          echo "SAUCE_ACCESS_KEY is missing"
-          exit 1
-        fi
-        echo "Sauce credentials are available"
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-    - name: Test ECS Application Connectivity
-      env:
-        APP_URL: ${{ secrets.APP_URL }}
-      run: |
-        echo "Testing application URL..."
-        echo "URL: $APP_URL"
-        curl -I -v $APP_URL
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    - name: Execute Sauce Labs Tests
-      env:
-        SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
-        SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
-        APP_URL: ${{ secrets.APP_URL }}
-        BROWSER: ${{ matrix.browser }}
+      - name: Install Dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
 
-      run: |
-        pytest -m smoke -v
+      - name: Verify Project Structure
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 3 -type f
 
-    - name: Upload Automation Reports
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: sauce-report-${{ matrix.browser }}
-        path: automation-framework/reports/
+      - name: Verify Sauce Credentials
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+        run: |
+          [ -n "$SAUCE_USERNAME" ] || (echo "SAUCE_USERNAME missing" && exit 1)
+          [ -n "$SAUCE_ACCESS_KEY" ] || (echo "SAUCE_ACCESS_KEY missing" && exit 1)
+
+          echo "Sauce credentials validated"
+
+      - name: Test ECS Application Connectivity
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+        run: |
+          echo "Testing URL: $APP_URL"
+          curl -I "$APP_URL"
+
+      - name: Create Reports Directory
+        run: mkdir -p reports
+
+      - name: Execute Sauce Labs Smoke Tests
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+          APP_URL: ${{ secrets.APP_URL }}
+          BROWSER: ${{ matrix.browser }}
+
+          BUILD_NAME: ${{ env.BUILD_NAME }}
+          BUILD_ID: ${{ env.BUILD_ID }}
+          GIT_BRANCH: ${{ env.GIT_BRANCH }}
+          GIT_COMMIT: ${{ env.GIT_COMMIT }}
+
+        run: |
+          pytest -m smoke \
+            -v \
+            --junitxml=reports/smoke-${{ matrix.browser }}.xml
+
+      - name: Upload JUnit Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit-${{ matrix.browser }}
+          path: automation-framework/reports/*.xml
+
+      - name: Upload Automation Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sauce-report-${{ matrix.browser }}
+          path: automation-framework/reports/
+
+      - name: Publish Summary
+        if: always()
+        run: |
+          echo "## Sauce Labs Smoke Execution" >> $GITHUB_STEP_SUMMARY
+          echo "- Build: $BUILD_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- Browser: ${{ matrix.browser }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Branch: $GIT_BRANCH" >> $GITHUB_STEP_SUMMARY
+          echo "- Commit: $GIT_COMMIT" >> $GITHUB_STEP_SUMMARY
 
   regression-test:
     needs: automation-test
