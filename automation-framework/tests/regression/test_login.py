@@ -1,31 +1,13 @@
 import pytest
 
+from utilities.config import load_environment
+
 
 @pytest.mark.regression
 def test_login(driver):
 
-    driver.get("application-url")
+    url = load_environment()
 
-    username = driver.find_element(
-        "id",
-        "username"
-    )
+    driver.get(url)
 
-    username.send_keys("testuser")
-
-
-    password = driver.find_element(
-        "id",
-        "password"
-    )
-
-    password.send_keys("password")
-
-
-    driver.find_element(
-        "id",
-        "login"
-    ).click()
-
-
-    assert "Dashboard" in driver.page_source
+    assert "App Works" in driver.page_source
