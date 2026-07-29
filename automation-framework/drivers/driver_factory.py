@@ -6,14 +6,17 @@ from selenium.webdriver.chrome.options import Options
 
 def get_driver():
 
-    username = os.environ["SAUCE_USERNAME"]
-    access_key = os.environ["SAUCE_ACCESS_KEY"]
+    username = os.getenv("SAUCE_USERNAME")
+    access_key = os.getenv("SAUCE_ACCESS_KEY")
+
+    if not username:
+        raise Exception("SAUCE_USERNAME is missing")
+
+    if not access_key:
+        raise Exception("SAUCE_ACCESS_KEY is missing")
 
 
-    sauce_url = (
-        f"https://{username}:{access_key}"
-        "@ondemand.us-west-1.saucelabs.com:443/wd/hub"
-    )
+    sauce_url = "https://ondemand.us-west-1.saucelabs.com/wd/hub"
 
 
     options = Options()
@@ -24,20 +27,21 @@ def get_driver():
     )
 
     options.set_capability(
+        "platformName",
+        "Windows 11"
+    )
+
+    options.set_capability(
         "browserVersion",
         "latest"
     )
 
     options.set_capability(
-        "platformName",
-        "Windows 11"
-    )
-
-
-    options.set_capability(
         "sauce:options",
         {
-            "name": "Flask ECS Test",
+            "username": username,
+            "accessKey": access_key,
+            "name": "Flask ECS Smoke Test",
             "build": "GitHub Actions"
         }
     )
