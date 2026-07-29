@@ -1,0 +1,11 @@
+chrome:
+  platform: Windows 11
+  browserVersion: latest
+
+firefox:
+  platform: Windows 11
+  browserVersion: latest
+
+edge:
+  platform: Windows 11
+  browserVersion: latest
