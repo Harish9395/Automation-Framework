@@ -10,26 +10,22 @@ def get_mobile_driver():
 
     options = UiAutomator2Options()
 
-    # W3C capabilities
+    # W3C Capabilities
     options.set_capability("platformName", "Android")
     options.set_capability("browserName", "Chrome")
 
-    # Appium capabilities
+    # Appium Capabilities
     options.set_capability("appium:automationName", "UiAutomator2")
     options.set_capability(
         "appium:deviceName",
-        os.getenv("DEVICE_NAME", "Samsung Galaxy S23")
+        os.getenv("DEVICE_NAME", "Samsung Galaxy S23 FE")
+    )
+    options.set_capability(
+        "appium:platformVersion",
+        os.getenv("PLATFORM_VERSION", "14")
     )
 
-    # Optional, but recommended
-    platform_version = os.getenv("PLATFORM_VERSION")
-    if platform_version:
-        options.set_capability(
-            "appium:platformVersion",
-            platform_version
-        )
-
-    # Sauce Labs capabilities
+    # Sauce Labs Capabilities
     options.set_capability(
         "sauce:options",
         {
@@ -37,6 +33,7 @@ def get_mobile_driver():
             "accessKey": access_key,
             "name": os.getenv("TEST_NAME", "ECS Mobile Smoke Test"),
             "build": os.getenv("BUILD_NAME", "ECS-Mobile"),
+            "buildId": os.getenv("BUILD_ID", ""),
             "recordVideo": True,
             "capturePerformance": True,
             "tags": [
@@ -47,7 +44,9 @@ def get_mobile_driver():
         },
     )
 
-    return webdriver.Remote(
+    driver = webdriver.Remote(
         command_executor="https://ondemand.eu-central-1.saucelabs.com/wd/hub",
         options=options,
     )
+
+    return driver
