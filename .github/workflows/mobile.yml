@@ -16,7 +16,7 @@ env:
 
   # Mobile Device Configuration
   DEVICE_NAME: "Samsung Galaxy S23 FE"
-  PLATFORM_VERSION: "14" # Change if your Sauce Labs device uses a different Android version
+  PLATFORM_VERSION: "16" # Change if your Sauce Labs device uses a different Android version
 
 jobs:
   mobile-test:
