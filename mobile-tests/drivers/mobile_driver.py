@@ -33,7 +33,7 @@ def get_mobile_driver():
     )
 
     driver = webdriver.Remote(
-        command_executor="https://ondemand.us-west-1.saucelabs.com/wd/hub",
+        command_executor="https://ondemand.eu-central-1.saucelabs.com/wd/hub",
         options=options
     )
 
