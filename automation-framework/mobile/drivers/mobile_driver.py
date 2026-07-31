@@ -22,7 +22,7 @@ def get_mobile_driver():
     )
     options.set_capability(
         "appium:platformVersion",
-        os.getenv("PLATFORM_VERSION", "14")
+        os.getenv("PLATFORM_VERSION", "16")
     )
 
     # Sauce Labs Capabilities
