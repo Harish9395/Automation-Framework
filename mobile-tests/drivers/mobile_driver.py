@@ -32,7 +32,7 @@ def get_mobile_driver():
 
     options.set_capability(
         "appium:platformVersion",
-        "14"
+        "16"
     )
 
     options.set_capability(
