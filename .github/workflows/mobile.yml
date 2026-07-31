@@ -4,39 +4,59 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - main
+      - Feature-react-test
+
+
+permissions:
+  contents: read
 
 
 jobs:
 
   sauce-mobile-test:
+
+    name: Run Mobile Chrome Tests
     runs-on: ubuntu-latest
 
     defaults:
       run:
         working-directory: mobile-tests
 
+
     steps:
 
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
 
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.11"
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
 
-    - name: Install dependencies
-      run: |
-        pip install -r mobile-tests/requirements.txt
+      - name: Upgrade pip
+        run: |
+          python -m pip install --upgrade pip
 
 
-    - name: Run Sauce Labs Test
-      env:
-        SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
-        SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
 
-      run: |
-        pytest mobile-tests/tests
+
+      - name: Verify test files
+        run: |
+          pwd
+          ls -la
+          find . -maxdepth 3 -type f
+
+
+      - name: Run Sauce Labs PyTest
+        env:
+          SAUCE_USERNAME: ${{ secrets.SAUCE_USERNAME }}
+          SAUCE_ACCESS_KEY: ${{ secrets.SAUCE_ACCESS_KEY }}
+          APP_URL: ${{ secrets.APP_URL }}
+
+        run: |
+          pytest tests -v
