@@ -10,9 +10,11 @@ on:
 jobs:
 
   sauce-mobile-test:
-
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: mobile-tests
 
     steps:
 
