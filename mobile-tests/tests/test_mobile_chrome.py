@@ -1,29 +1,14 @@
-from driver import get_mobile_driver
-import time
+import os
 
 
-def test_home_page():
+def test_mobile_chrome(mobile_driver):
 
-    driver = get_mobile_driver()
+    app_url = os.environ["APP_URL"]
 
-    try:
+    mobile_driver.get(app_url)
 
-        driver.get(
-            "https://your-react-app-url.com"
-        )
+    title = mobile_driver.title
 
-        time.sleep(5)
+    print("Page title:", title)
 
-        title = driver.title
-
-        print(
-            "Page title:",
-            title
-        )
-
-        assert driver.current_url.startswith(
-            "https://"
-        )
-
-    finally:
-        driver.quit()
+    assert mobile_driver.current_url.startswith("http")
