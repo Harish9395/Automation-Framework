@@ -5,77 +5,49 @@ from appium.options.android import UiAutomator2Options
 
 
 def get_mobile_driver():
-
-    username = os.getenv("SAUCE_USERNAME")
-    access_key = os.getenv("SAUCE_ACCESS_KEY")
-
-    if not username:
-        raise Exception("SAUCE_USERNAME is missing")
-
-    if not access_key:
-        raise Exception("SAUCE_ACCESS_KEY is missing")
+    username = os.environ["SAUCE_USERNAME"]
+    access_key = os.environ["SAUCE_ACCESS_KEY"]
 
     options = UiAutomator2Options()
 
-    options.set_capability(
-        "platformName",
-        "Android"
-    )
+    # W3C capabilities
+    options.set_capability("platformName", "Android")
+    options.set_capability("browserName", "Chrome")
 
-    options.set_capability(
-        "appium:automationName",
-        "UiAutomator2"
-    )
-
+    # Appium capabilities
+    options.set_capability("appium:automationName", "UiAutomator2")
     options.set_capability(
         "appium:deviceName",
-        "Samsung Galaxy S23"
+        os.getenv("DEVICE_NAME", "Samsung Galaxy S23")
     )
 
-    options.set_capability(
-        "browserName",
-        "Chrome"
-    )
+    # Optional, but recommended
+    platform_version = os.getenv("PLATFORM_VERSION")
+    if platform_version:
+        options.set_capability(
+            "appium:platformVersion",
+            platform_version
+        )
 
+    # Sauce Labs capabilities
     options.set_capability(
         "sauce:options",
         {
             "username": username,
             "accessKey": access_key,
-
-            "name": os.getenv(
-                "TEST_NAME",
-                "ECS Mobile Web Test"
-            ),
-
-            "build": os.getenv(
-                "BUILD_NAME",
-                "ECS Mobile Build"
-            ),
-
-            "buildId": os.getenv(
-                "BUILD_ID",
-                ""
-            ),
-
+            "name": os.getenv("TEST_NAME", "ECS Mobile Smoke Test"),
+            "build": os.getenv("BUILD_NAME", "ECS-Mobile"),
             "recordVideo": True,
-
             "capturePerformance": True,
-
             "tags": [
                 "mobile",
                 "web",
-                os.getenv(
-                    "TEST_TYPE",
-                    "Smoke"
-                )
-            ]
-        }
+                os.getenv("TEST_TYPE", "Smoke"),
+            ],
+        },
     )
 
-    driver = webdriver.Remote(
+    return webdriver.Remote(
         command_executor="https://ondemand.eu-central-1.saucelabs.com/wd/hub",
-        options=options
+        options=options,
     )
-
-    return driver
